@@ -1,0 +1,9 @@
+missing command "create" parameters
+
+Command create:
+
+    - create:controller
+    - create:model
+
+How to use:
+    Example -> php ant create:controller ClassNameController

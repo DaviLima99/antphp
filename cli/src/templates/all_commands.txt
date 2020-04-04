@@ -1,0 +1,12 @@
+Filed to run command
+
+commads:
+    - create: [
+        create:controller
+        create:model
+        create:auth
+    ]
+    
+    - server
+    
+    - log
