@@ -21,8 +21,7 @@ $route = (new Core\Route\Router())
 ->get('/', [
     'HomeController',
     'index'
-])
-;
+]);
 
 $route->run();
 

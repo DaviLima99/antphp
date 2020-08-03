@@ -1,6 +1,6 @@
 {
     "name": "antphp-microframework",
-    "description": "Simple and Micro framework PHP to create API's ",
+    "description": "Simple and Micro framework PHP",
     "license": "MIT",
     "type": "project",
     "authors": [
