@@ -2,144 +2,116 @@
 
 namespace Core\Router;
 
+use Core\Router\RouterManager;
+use Core\Router\Dispatcher;
 use Core\Request\Request;
 
-class Router 
-{
+class Router {
+
     /**
      * 
-     * Const method POST
-     * 
-     * @var string
-     */
-    const METHOD_POST = 'POST';
-    
-    /**
-     * 
-     * Const method GET
-     * 
-     * @var string
      */
     const METHOD_GET = 'GET';
 
+    /**
+     * 
+     */
+    const METHOD_POST = 'POST';
 
-    private $request;
+    /**
+     * 
+     */
+    const METHOD_PUT = 'PUT';
 
+    /**
+     * 
+     */
+    const METHOD_DELETE = 'DELETE';
 
-    private $routes = [];
+    /**
+     * 
+     */
+    private $routerManager;
 
-    public function run(string $uri, Request $request)
+    /**
+     * 
+     */
+    private $dispacher;
+    
+    public function __construct()
     {
-        $this->request = $request;
-        $this->match($uri, $this->routes);
-        $this->dispatch();
+        $this->routerManager = new RouterManager();
+        $this->dispatcher = new Dispatcher();
     }
-     
-    private function dispatch() : void
+
+    public function get(string $route, $callback) : Router
     {
-        if (empty($this->routeMatch)) {
-            die('404');
+        $this->routerManager->add(self::METHOD_GET, $route, $callback);
+        return $this;
+    }
+
+    public function post(string $route, $callback) : Router
+    {
+        $this->routerManager->add(self::METHOD_POST, $route, $callback);
+        return $this;
+    }
+
+    public function put(string $route, $callback) : Router
+    {
+        $this->routerManager->add(self::METHOD_PUT, $route, $callback);
+        return $this;
+    }
+
+    public function delete(string $route, $callback) : Router
+    {
+        $this->routerManager->add(self::METHOD_DELETE, $route, $callback);
+        return $this;
+    }
+
+    public function resolveRequest(Request $request)
+    {
+        $route = $this->findRoute($request->method(), $request->uri());
+       
+        if (!$route) {
+            return $this->responseNotFound();
         }
 
-        echo "<br/>";
-        var_dump($this->routeMatch);
-        die();
+        $params = $route->callback['params'] ? $this->getValues($request->uri(), $route->callback['params']) : [];
 
-        // $controller = ClassBuilder::instanceController($this->routeMatch['controller']);
-        // $param = $this->routeMatch['param'];
-        // $action = $this->routeMatch['action'];
-        // $request = $this->request(Router::METHOD_GET);
-
-        // if (!empty($param)) {
-        //     $controller->$action($param, $request);
-        //     return;
-        // }
-
-        // $controller->$action($param, $request);
+        $this->dispatch($route, $params);
+        
     }
 
-    private function match(string $url, array $routes)
-    {  
-        foreach ($routes as $route) {
-            echo "<pre>";
+    private function getValues($pattern, $positions)
+    {
+        $result = [];
+
+        $pattern = array_filter(explode('/', $pattern));
     
-            var_dump($route);
-            die();
-            $explodeUrl = explode('/', $url);
-            $explodeRoute = explode('/', $route[0]);
-            $dispatch = $route[1];
-            
-            // if (count($explodeUrl) === count($explodeRoute) && (strpos(end($explodeRoute), '{') !== false) ) {
-            //     if (!$this->routeParamMatch($explodeRoute, $explodeUrl, $dispatch)) {
-            //         continue;
-            //     }
-
-            //     break;
-            // }
-
-            if ($this->match($route[0], $url)) {
-                $this->routeMatch = [
-                    'url' => $route[0],
-                    'controller' => $dispatch[0],
-                    'action'    => $dispatch[1],
-                ];
-
-                break;
+        foreach($pattern as $key => $value)
+        {
+            if(in_array($key, $positions)) {
+                $result[array_search($key, $positions)] = $value;
             }
         }
-
-        if (empty($this->routeMatch)) {
-            die('404');
-        }
+    
+        return $result;
+        
     }
 
-    private function routeParamMatch(array $explodeRoute, array $explodeUrl, array $dispatch) : bool
+    protected function responseNotFound()
     {
-        $param = end($explodeUrl);
-        array_pop($explodeRoute);
-        array_pop($explodeUrl);
-
-        if ($this->match(implode('/', $explodeRoute), implode('/', $explodeUrl))) {
-            $this->routeMatch = [
-                'url' => implode('/', $explodeRoute),
-                'controller' => $dispatch[0],
-                'action' => $dispatch[1],
-                'param' => $param
-            ];
-
-            return true;
-        }
-
-        return false;
+        return header("HTTP/1.0 404 Not Found", true, 404);
     }
 
-    private function isMatch(string $route, string $url) : bool
+    private function findRoute(string $method, string $uri)
     {
-        return $url === $route;
+        return $this->routerManager->findRoute($method, $uri);
     }
 
-
-    public function post(string $route, $param) : Router
+    private function dispatch(object $route, array $params)
     {
-        return $this->add($route, $param, self::METHOD_POST);
+        return $this->dispatcher->dispatch($route->callback, $params);
     }
 
-    public function get(string $route, $param) : Router
-    {
-        return $this->add($route, $param, self::METHOD_GET);
-    }
-
-    private function add(string $route, $param, string $method) : Router 
-    {
-        switch ($method) {
-            case self::METHOD_POST:
-                $this->routes[self::METHOD_POST][] = [$route, $param, $method];
-                break;
-            case self::METHOD_GET:
-                $this->routes[self::METHOD_GET][] = [$route, $param, $method];
-                break;
-        }
-
-        return $this; 
-    }
 }
