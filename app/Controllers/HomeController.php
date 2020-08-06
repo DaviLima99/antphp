@@ -2,12 +2,14 @@
 
 namespace App\Controllers;
 
+use Core\Request\RequestParam;
+
 class HomeController
 {
-    public function index($param)
+    public function index(RequestParam $request, $param)
     {
         echo '<pre>';
-        var_dump($param);
+        var_dump($request->body());
         die('end');
         
     }

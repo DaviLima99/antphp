@@ -83,7 +83,7 @@ class RouterManager {
         $params = $this->bindParams($route);
 
         
-        $this->routesPost[1] = [
+        $this->routesPost[$this->defineRoute($route)] = [
             'params' => $params,
             'callback' => $callback
         ];
@@ -145,7 +145,7 @@ class RouterManager {
                 return $this->findByGet($uri);
             break;
             case Router::METHOD_POST:
-                // return $this->findByPost($uri);
+                return $this->findByPost($uri);
             break;
             case Router::METHOD_PUT:
                 // return $this->findByPut($uri);
@@ -169,6 +169,19 @@ class RouterManager {
         $parsedUri = $this->parseUri($uri);
 
         foreach ($this->routesGet as $route => $callback) {
+            if(preg_match($route, $parsedUri, $pieces)) {
+                return (object) ['callback' => $callback, 'uri' => $pieces];
+            }
+        }
+
+        return false;
+    }
+
+    private function findByPost(string $uri)
+    {
+        $parsedUri = $this->parseUri($uri);
+        
+        foreach ($this->routesPost as $route => $callback) {
             if(preg_match($route, $parsedUri, $pieces)) {
                 return (object) ['callback' => $callback, 'uri' => $pieces];
             }

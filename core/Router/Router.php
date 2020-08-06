@@ -71,7 +71,7 @@ class Router {
     public function resolveRequest(Request $request)
     {
         $route = $this->findRoute($request->method(), $request->uri());
-       
+        
         if (!$route) {
             return $this->responseNotFound();
         }

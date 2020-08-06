@@ -2,6 +2,7 @@
 
 namespace Core\Router;
 
+use Core\Request\RequestParam;
 use Core\Router\ClassBuilder;
 
 class Dispatcher {
@@ -21,21 +22,23 @@ class Dispatcher {
             throw new \Exception("Dispatch error: Wrong syntax.");         
         }
 
-
         
         $callback['callback'] = explode('@', $callback['callback']);
         $controller = $callback['callback'][0];
         $action = $callback['callback'][1];
         
         $objController = ClassBuilder::instanceController($controller);
-
-        $objController->$action($params);
+        $requestParam = new RequestParam();
+        $objController->$action($requestParam, $params);
 
         throw new \Exception("Erro ao despachar: método não implementado");
     }
 
     private function dispatchCallable(array $callback, array $params)
     {
-        return call_user_func_array($callback['callback'], array_values($params));
+        $requestParam = new RequestParam();
+        $params = array_shift($params);
+        
+        return call_user_func($callback['callback'], $requestParam, $params);
     }
 }
